@@ -48,12 +48,13 @@ Tiers measure **blast radius, not file type**. Here prose is the sensitive part:
 | `_documents/**`, `_entries/**`, `_people/**`, `es/**` records, tags, roles, dates, quotes | **R3** | Claims about real people. A change that alters no claim, name, date, role or quote (for example a broken-link or formatting fix) may be proposed as R2 and confirmed by the owner. |
 | `index.md`, `es/index.md` ("What the Records Show So Far") | **R3** | Wording was approved line by line; agents may only **propose** edits, listed for approval. |
 | `about.md`, `es/about.md`, `contact.md`, `es/contact.md` | **R3** | Carries the AI, analytics and privacy disclosures. |
-| `_config.yml` | **R3** | Analytics code, contact form, overview-date markers. |
-| `.github/workflows/**`, `scripts/check_people.py`, `scripts/check_i18n.py`, `CLAUDE.md`, `.claude/**` | **R3** | These are the factory's gates and context (principle 4). |
+| `_config.yml` | **R3** | Analytics code, contact form, overview-date markers. A document-ingest task may change only `overview_through` and `overview_reviewed`, together with an overview change the owner approves. |
+| `.github/workflows/**`, `scripts/check_people.py`, `scripts/check_i18n.py`, `CLAUDE.md`, `docs/**`, `.claude/**` | **R3** | These are the factory's gates and context (principle 4). Convention changes are proposed in a PR description, not edited by the task. |
+| `docs/content-state.md` | **R3** (as part of an ingest) | The one `docs/` file an ingest task updates (content table and counts). |
 | New files in `assets/documents/**` | **R3** | Only through the ingest skill/script; the hash is computed by the script. |
 
 - **Human-only fields:** `es_reviewed: true` (a person's attestation that a Spanish text was checked), `sha256` (script-computed only), `overview_through` / `overview_reviewed` (set only together with an approved overview edit).
-- **Never touch:** existing PDFs in `assets/documents/` (no edits, replacements or deletions), `_site/`, `.jekyll-cache/`, DNS and Pages settings.
+- **Never touch:** existing PDFs in `assets/documents/` (no edits, replacements or deletions; replacing one is owner-only, and the owner recomputes its `sha256`), `_site/`, `.jekyll-cache/`, DNS and Pages settings. New PDFs arrive only through `scripts/add_document.py`, which computes the `sha256`.
 
 ## 5. Work types and Detection sources
 | Work type | Source / trigger | Typical tier |
