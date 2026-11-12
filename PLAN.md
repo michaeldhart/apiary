@@ -26,9 +26,10 @@ Status: **draft 0.1** (2026-11-10)
 | D14 | Issues live in each hive repo; `apiary:` labels are the source of truth | A GitHub Projects board is the MVP admin surface (§3, §4). Tracker sits behind a thin adapter. |
 | D15 | Agents run as a distinct bot identity, never the owner's personal token | Human-only gates are validated at the point of use (§2.0). |
 | D16 | Stay on the GitHub free plan; make the `apiary` repo **public** | Rulesets cover `apiary` itself. Private hive repos have no branch protection, so they use the fallback gate (§3) until/unless Pro or public. |
+| D18 | The first hive is `eyes-on-hawkeye` | Audited 2026-11-12; profile in `hives/eyes-on-hawkeye.md`. It is public, so branch rulesets are available there. |
 | D17 | Phase 0 authenticates with the owner's consumer Claude subscription token | Switching to an API key with a spend cap is a **post-MVP improvement**, kept on the table (§3). |
 
-**Pending decisions:** first hive (proposed: `eyes-on-hawkeye`, §5). Post-MVP candidates: API-key credential, GitHub Pro for hive-repo rulesets, separate agent sandbox (§3).
+**Pending decisions:** none blocking. Post-MVP candidates: API-key credential, GitHub Pro for hive-repo rulesets, separate agent sandbox (§3).
 
 Motivations: (1) PoC for implementing this at work; (2) automate improvements and bugfixes for Wire, Eyes on Hawkeye and other personal projects. Over-engineering is allowed when it teaches us something.
 
@@ -153,7 +154,7 @@ Context (conventions, architecture notes, never-touch list) is **part of Plan**,
 - **State and artifacts:** the GitHub issue is the record. Each station moves the issue by label (`apiary:<state>`, see §3) and posts its output as a structured comment or attachment. Every run also writes a **run record**: transcript, model/config versions, cost, exit state.
 - **Permission profiles:** `read-only` (repo and telemetry); `issue-write` (comment and label only); `sandbox-write` (its own worktree, no secrets, allowlisted egress, push only to `apiary/*` branches); `human-only` (merge, deploy credentials, and any change to gates, policies or prompts).
 - **Exit states:** every station ends **pass** (moves on), **bounce** (returns to an earlier station with a reason) or **blocked** (parked for a human with a summary). Retries are bounded: one automatic retry in a fresh session, then escalate. Repeated permission denials and budget hits always escalate.
-- **Risk tiers (D6):** `R0` docs, comments, tests only; `R1` small logic change in a non-sensitive path; `R2` behavior change or feature; `R3` sensitive area (auth, data, infra, deploy) or the factory itself. Path rules set a **floor** on the tier and an agent can only raise it. The path-to-tier rules are filled in per repo.
+- **Risk tiers (D6):** `R0` docs, comments, tests only; `R1` small logic change in a non-sensitive path; `R2` behavior change or feature; `R3` sensitive area (auth, data, infra, deploy) or the factory itself. Path rules set a **floor** on the tier and an agent can only raise it. The path-to-tier rules are filled in per repo in a **hive profile** (`hives/<repo>.md`, template at `hives/_template.md`). Tiers measure blast radius, not file type: on a content hive such as `eyes-on-hawkeye`, prose that makes claims about real people is `R3`, not `R0`.
 - **Human-controlled gates (D7, D9):** a human applies `apiary:ready` (after Triage proposes) and `apiary:plan-approved`, and approves and merges the PR in the GitHub UI. Agent identities must not be able to apply these labels or approve/merge. **Enforcement (D15):** (1) agents run as a bot identity (the Claude GitHub App or a custom App), never the owner's personal token, so GitHub records who did what; (2) before Build claims an issue, a script reads the issue timeline and confirms the latest `ready` and `plan-approved` label events came from an allowed human, and an Actions check strips those labels if a bot applies them; (3) merge is guarded by a branch ruleset (required human review, no direct pushes, no auto-merge), which needs a public repo or GitHub Pro (§3). *Chaining note:* GitHub does not fire workflows from events created with the default `GITHUB_TOKEN`, and the Claude action rejects bot-triggered runs unless the bot is allowlisted (`allowed_bots`), so stage-to-stage handoffs use `workflow_dispatch` or an App token with an explicit allowlist.
 - **Metrics:** every station reports throughput, latency, pass/bounce/blocked rates and cost. Cards list only what is specific to the station.
 
@@ -171,7 +172,7 @@ Context (conventions, architecture notes, never-touch list) is **part of Plan**,
 
 **Notes from the sources**
 - Ona: intake also includes agent-generated work: Sentry-to-issue incident responder, a Product Improver that screenshots the live app and files `needs-human` issues, a `quality.md` scorecard that spawns issues for weak areas, and an in-app feedback widget + digest. Scheduled backlog pickers and CVE/dead-code sweeps target chronic toil.
-- Treat issue text as untrusted input (prompt injection).
+- Treat issue text as untrusted input (prompt injection). Hive-specific sources and work types live in each hive profile (for example a watcher on the city's document page for `eyes-on-hawkeye`).
 
 ### 2.2 Triage
 - **Trigger:** `apiary:detected`.
@@ -262,7 +263,7 @@ Plan owns both the standing context agents work from and the plan for each issue
 - **Gate:** a post-merge smoke test, plus a canary or feature flag where the hive supports one.
 - **Failure:** `S` opens an auto-revert PR and alerts a human. Revert criteria are set per hive.
 - **Metrics:** change failure rate, time to restore, deploy frequency.
-- TODO (per-hive profile, §6): how each project deploys today, its smoke test and its rollback procedure. First hive proposed: `eyes-on-hawkeye` (on disk; pending confirmation).
+- Per-hive deploy details, smoke test and rollback live in the hive profile (`hives/`). First hive: `eyes-on-hawkeye` (D18): deploys on push to `main` via GitHub Pages in about 30-90 s; the checks and build already run before the deploy job; no smoke test or PR CI yet.
 
 **Notes from the sources**
 - Anthropic: at agent-scale throughput they **dropped the global merge-queue lock** in favor of post-merge and pre-deploy automated testing, with agents resolving conflicts. Not a PoC problem (see §5) but it implies Deploy gates should live post-merge as well as pre-merge. Roll out behavior changes (including to the factory's own prompts/config) gradually with soak periods, as in their postmortem.
@@ -342,7 +343,7 @@ Plan owns both the standing context agents work from and the plan for each issue
   - **Phase 1 (post-MVP):** a separate sandbox with a credential proxy and egress allowlist, per Anthropic's pattern (§1.2).
   - **Cost tracking:** no model gateway for the PoC. Capture turns, duration and token usage (and dollar cost when billed by API) into each run record.
 - **Credential (D17): consumer Claude subscription for Phase 0; API key is a post-MVP improvement.** Anthropic's Actions docs support a subscription OAuth token (`claude setup-token`, stored as `CLAUDE_CODE_OAUTH_TOKEN`); runs then use the subscription instead of API billing. Caveats from Anthropic's legal/compliance page: OAuth is "designed for ordinary use", advertised plan limits assume ordinary individual usage, and developers building products or services (including with the Agent SDK) should use API-key authentication. The token is also tied to one person's subscription, and its limits are shared with interactive use. *Decision and mitigations (my reading of the terms, not a ruling):* start with the owner's subscription token via the official action, on the owner's own repos at modest volume. Most runs are human-initiated because Plan and Build start from human-applied labels (D7), which fits "ordinary use" better than a fully scheduled loop; keep scheduled/automatic runs few and cheap, use `--max-turns`, and watch rate limits since they are shared with interactive use. **Move to an API key with a spend cap** (the post-MVP improvement) for scheduled or heavy use, any direct Agent SDK use, and the work PoC. Re-check Anthropic's current terms before scaling up.
-- **Repo visibility and gate protection (D16).** Branch protection and rulesets need GitHub Pro or a public repo. `apiary` is public, so rulesets protect it (and its reusable workflows can be called from other repos). Private hive repos on the free plan have no branch protection, so they use the **fallback gate**: a required status check that fails unless the owner approved, plus a convention of never giving agents push rights to the default branch. An admin can bypass this, so it is weaker; GitHub Pro (about $4/month) or a public hive closes the gap later. *Cost note:* reusable workflows run in, and bill minutes to, the calling repo; the free plan includes 2,000 Actions minutes per month for private repos, so watch usage. A public repo also means anyone can open issues or PRs: any workflow acting on issue or comment text must check the author has write access (the Claude action already does) and treat the text as untrusted; fork PRs do not receive secrets by default.
+- **Repo visibility and gate protection (D16).** Branch protection and rulesets need GitHub Pro or a public repo. `apiary` is public, so rulesets protect it (and its reusable workflows can be called from other repos). **`eyes-on-hawkeye` is also public, so rulesets are available there too** and the fallback is not needed for the first hive. Private hive repos on the free plan have no branch protection, so they use the **fallback gate**: a required status check that fails unless the owner approved, plus a convention of never giving agents push rights to the default branch. An admin can bypass this, so it is weaker; GitHub Pro (about $4/month) or a public hive closes the gap later. *Cost note:* reusable workflows run in, and bill minutes to, the calling repo; the free plan includes 2,000 Actions minutes per month for private repos, so watch usage. A public repo also means anyone can open issues or PRs: any workflow acting on issue or comment text must check the author has write access (the Claude action already does) and treat the text as untrusted; fork PRs do not receive secrets by default.
 - **Observability (adopted):** for hives, Sentry (or whatever a hive already uses) for errors plus a simple uptime check. For the factory, each run uploads its run record as an Actions artifact and summarizes it in an issue comment; a scheduled script aggregates metrics. The admin UI can read these later.
 - **Work differences (deferred):** keep to Claude for now (D11) and the owner as sole approver (D12). Questions to answer before the work pilot: which tracker and code host the team uses; approved AI vendors and channels (direct API, Bedrock, Vertex); what change-management/SOC 2 requires of an approver (the human gate already satisfies "author is not approver" while an agent can never approve its own PR); whether code leaving the network needs review; whether agent access to repos needs a security review.
 - Ona's stack for reference: GitHub (issues/PRs), Sentry (errors), Vercel (deploy), Storybook (UI reference), orchestrated by their platform. Ours substitutes GitHub Actions + Claude Code; Sentry (or equivalent) is likely worth adopting for the Monitoring loop.
@@ -388,7 +389,7 @@ Purpose: a control plane to see and steer the factory: queue, in-flight runs, ap
 - **Verifier gaps**: passing tests can create false confidence (C compiler post); budget for strong evaluators and human spot checks.
 - **Cost variance**: tokens drive performance and cost; a full harness can be 20x a solo run. Set per-run budgets and measure value per dollar.
 - **Source-control/CI as the next bottleneck** at high merge rates (Anthropic). Not a PoC issue; revisit for work.
-- Q: First guinea pig: proposed `eyes-on-hawkeye` (on disk); confirm, and decide whether The Wire follows.
+- Decided (D18): the first guinea pig is `eyes-on-hawkeye`. Open: whether The Wire follows, and what to learn from Hawkeye first (see its profile's onboarding checklist).
 - Q: Budget ceiling for tokens/month?
 - Decided (D13): agents run on GitHub Actions for Phase 0; a separate sandbox is post-MVP.
 - Decided (D8): deploy on merge is acceptable; every merge still needs the owner's approval (D1, D12).
@@ -403,14 +404,15 @@ Purpose: a control plane to see and steer the factory: queue, in-flight runs, ap
 - [ ] Pick the first target project and audit its test/CI readiness.
 - [x] Draft a spec card for every station and the shared conventions (§2.0-2.10); Context merged into Plan (D10).
 - [ ] Refine the station cards one by one (suggested order: Plan, Build, Verify, then Triage, Approval, Deploy, Refinement, Monitoring, Detection).
-- [ ] Define a per-hive profile template: path-to-tier rules, init/test commands, deploy and smoke test, rollback, watch windows. Fill it in for the first hive.
+- [x] Per-hive profile template (`hives/_template.md`) and the first profile (`hives/eyes-on-hawkeye.md`).
 - [x] Label names confirmed (D14); human-only enforcement designed (§2.0).
 - [x] `apiary` repo made public; free plan with the fallback gate for private hives (D16).
 - [x] Phase 0 credential: consumer subscription; API key is post-MVP (D17).
 - [ ] Post-MVP: switch to an API key with a spend cap; revisit GitHub Pro for hive-repo rulesets; separate agent sandbox.
 - [ ] Set up the GitHub Projects board (fields and views in §3) and the issue forms (§2.1).
 - [ ] Implement the human-only label check and the claim-time timeline validation (§2.0).
-- [ ] Audit `eyes-on-hawkeye` and draft its hive profile (first hive, pending confirmation).
+- [x] Audited `eyes-on-hawkeye` and drafted its hive profile (D18).
+- [ ] Work through the onboarding checklist in `hives/eyes-on-hawkeye.md` (PR CI, ruleset, CLAUDE.md split and Apiary section, init script, smoke and hash checks, labels/forms/board, credential secret, first tasks).
 - [ ] Set the Triage graduation thresholds (§2.2) once there is agreement data.
 - [x] Pick a naming theme: Apiary (D5, §8).
 - [x] Choose the project name: Apiary (D5, §8.3).

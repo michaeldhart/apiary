@@ -14,6 +14,7 @@ Apiary is an internal **software factory**: a pipeline of narrow agents and auto
 
 - [PLAN.md](PLAN.md): the living planning doc and source of truth. Decisions are in §0 (D1-D5), the loop in §2, tooling in §3, admin UI in §4, risks in §5, next steps in §6, references in §7, theme in §8.
 - [SOURCE-NOTES.md](SOURCE-NOTES.md): detailed per-source notes behind PLAN.md §1.2.
+- [hives/](hives/): per-repo hive profiles (`_template.md`, `eyes-on-hawkeye.md`): path-to-tier rules, readiness, verify, deploy, monitoring, onboarding checklist.
 - [README.md](README.md): short overview.
 
 ## Working conventions

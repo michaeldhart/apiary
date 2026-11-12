@@ -22,6 +22,7 @@ Themed as an apiary: target projects are **hives**, agents are **workers**, work
 | File | What it is |
 |---|---|
 | [PLAN.md](PLAN.md) | The living planning doc: decisions, what a software factory is and isn't, the loop, tooling, admin UI, risks, references. Start here. |
+| [hives/](hives/) | Per-repo hive profiles: risk rules, readiness audit, deploy and monitoring specifics. Start with `eyes-on-hawkeye.md`; the template is `_template.md`. |
 | [SOURCE-NOTES.md](SOURCE-NOTES.md) | Detailed notes on the source articles (Ona, Anthropic, LaunchDarkly, Yegge) that the plan synthesizes. |
 | [CLAUDE.md](CLAUDE.md) | Instructions for Claude Code working in this repo. |
 
