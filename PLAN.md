@@ -412,7 +412,8 @@ Purpose: a control plane to see and steer the factory: queue, in-flight runs, ap
 - [ ] Set up the GitHub Projects board (fields and views in §3) and the issue forms (§2.1).
 - [ ] Implement the human-only label check and the claim-time timeline validation (§2.0).
 - [x] Audited `eyes-on-hawkeye` and drafted its hive profile (D18).
-- [ ] Work through the onboarding checklist in `hives/eyes-on-hawkeye.md` (PR CI, ruleset, CLAUDE.md split and Apiary section, init script, smoke and hash checks, labels/forms/board, credential secret, first tasks).
+- [x] Hawkeye gates landed: PR CI, `main` ruleset, `CLAUDE.md` split with an Apiary section, `init.sh` (PR #1, 2026-11-12).
+- [ ] Finish the rest of the onboarding checklist in `hives/eyes-on-hawkeye.md`: smoke test and PDF hash check, link and accessibility checks, labels/forms/Projects board, credential secret, first tasks.
 - [ ] Set the Triage graduation thresholds (§2.2) once there is agreement data.
 - [x] Pick a naming theme: Apiary (D5, §8).
 - [x] Choose the project name: Apiary (D5, §8.3).

@@ -1,6 +1,6 @@
 # Hive profile: eyes-on-hawkeye
 
-Status: **draft (audited, not yet onboarded)** · Last audited: 2026-11-12 · Owner: Michael Hart
+Status: **onboarding in progress** (gates landed 2026-11-12; see §11) · Last audited: 2026-11-12 · Owner: Michael Hart
 
 ## 1. Identity
 - **Repo:** [michaeldhart/eyes-on-hawkeye](https://github.com/michaeldhart/eyes-on-hawkeye), **public**, default branch `main`, 38 commits at audit time, 0 open issues or PRs.
@@ -19,13 +19,13 @@ Measured on a fresh clone in a throwaway directory (2026-11-12):
 | Readiness item | Status | Detail |
 |---|---|---|
 | Fresh clone goes green | ✅ | About 30 s, no warnings. |
-| CI on pull requests | ❌ | `pages.yml` runs only on push to `main` and manual dispatch, so nothing checks a PR before merge. |
-| Branch ruleset on `main` | ❌ | Not protected. **Available because the repo is public** (the free-plan limit in D16 does not apply here). |
+| CI on pull requests | ✅ | Added in PR #1: `ci.yml` job `checks` runs both check scripts and a warning-free production build on every PR. (Before that, `pages.yml` ran only on push to `main`.) |
+| Branch ruleset on `main` | ✅ | Active since 2026-11-12 (see §9). Available because the repo is public; the free-plan limit in D16 does not apply here. |
 | Automated tests | ⚠ | Two registry/translation check scripts gate the deploy; there are no link, accessibility or PDF-hash checks in CI. The CLAUDE.md "zero axe violations" standard is audited by hand. |
 | Behavioral/visual checks | ⚠ | Manual preview and an axe-core procedure in CLAUDE.md. |
 | Smoke test after deploy | ❌ | None. |
-| Init script | ⚠ | None; trivial to add (see checklist). |
-| Context files | ⚠ | Strong content, but see §3 (size, conflicts). |
+| Init script | ✅ | `init.sh` (PR #1). |
+| Context files | ✅ | `CLAUDE.md` cut to about 5 KB with an Apiary section; details in `docs/` (PR #1). |
 | Issue forms, labels, Projects board | ❌ | None yet. |
 | Secrets | ✅ | None in the repo. |
 | Deploy blocked by failing checks | ✅ | The people/i18n checks and the build run before the deploy job, so a failing check stops a bad deploy. |
@@ -92,8 +92,8 @@ A static site has no server-side errors to catch, so signals are about availabil
 - **Human feedback channel:** the Contact page's form (corrections and tips).
 
 ## 9. Gates and permissions
-- **Branch ruleset on `main` (to set; allowed because the repo is public):** require a pull request; require the PR checks to pass; require one approving review from someone other than the PR author (agent PRs come from a bot identity, so the owner can approve); block force pushes and deletions; keep admin bypass for the owner only, for hotfixes.
-- **Repo settings:** enable "automatically delete head branches"; keep auto-merge **off** (D1).
+- **Branch ruleset on `main` (active, "Protect main (Apiary gates)"):** requires a pull request, the `checks` status check, and one approving review (stale approvals dismissed on push); blocks force pushes and deletion. The repo-admin role (the owner) can bypass, for hotfixes and for PRs opened with the owner's own token, which the owner cannot approve. Agents get no bypass. *Revisit:* once agents run as a separate bot identity (D15), consider removing the bypass.
+- **Repo settings:** merged head branches are deleted automatically; auto-merge stays **off** (D1).
 - **Labels, issue forms, board:** none today. Add the `apiary:`, `risk:` and `type:` labels, the bug and change issue forms, and add the repo to the Apiary Projects board.
 - **Secrets the factory needs:** the Claude credential for Phase 0 (D17) as a repo secret; none exists today. Workflows from forks do not receive it.
 - **Who may open or label issues that trigger runs:** the repo is public and has issues enabled, so **strangers can open issues**. Detection and Triage must act only on issues authored by the owner, collaborators or the Apiary bot, and must treat all issue text as untrusted. Only the owner can apply `ready` and `plan-approved` (§2.0).
@@ -104,10 +104,10 @@ A static site has no server-side errors to catch, so signals are about availabil
 
 ## 11. Onboarding checklist
 Items marked **(R3)** touch gates or context, so the owner (with Claude, interactively) lands them first; the factory's own runs start only after the gates exist.
-- [ ] Add a PR workflow that runs the checks and build without deploying **(R3)**.
-- [ ] Set the branch ruleset on `main` and the repo settings above.
-- [ ] Add the Apiary section to `CLAUDE.md` and split it into a short index plus on-demand docs **(R3)**.
-- [ ] Add `init.sh` (bundle install, both checks, build).
+- [x] PR workflow that runs the checks and build without deploying (PR #1).
+- [x] Branch ruleset on `main` and repo settings (2026-11-12).
+- [x] Apiary section in `CLAUDE.md`, split into a short index plus on-demand docs (PR #1).
+- [x] `init.sh` (PR #1).
 - [ ] Add the smoke test and PDF hash check scripts, then the link check and axe-core pass **(R3, workflows)**.
 - [ ] Create labels, issue forms and add the repo to the Projects board.
 - [ ] Add the Claude credential secret (D17).
