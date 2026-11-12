@@ -41,6 +41,6 @@ The full list is PLAN.md §1.6. The ones most likely to matter when proposing de
 
 ## Git and sharing
 
-- This repo is **private** on the owner's GitHub account. Don't make it public, add collaborators, or publish artifacts of it without asking.
+- This repo is **public** on the owner's GitHub account (D16), so everything committed is world-readable. Never commit secrets, private employer details or anything the owner wouldn't want public. Don't add collaborators or publish artifacts of it without asking.
 - Commit and push only when the owner asks.
 - Never commit secrets, tokens or credentials.
