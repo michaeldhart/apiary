@@ -21,9 +21,9 @@ Measured on a fresh clone in a throwaway directory (2026-11-12):
 | Fresh clone goes green | ✅ | About 30 s, no warnings. |
 | CI on pull requests | ✅ | Added in PR #1: `ci.yml` job `checks` runs both check scripts and a warning-free production build on every PR. (Before that, `pages.yml` ran only on push to `main`.) |
 | Branch ruleset on `main` | ✅ | Active since 2026-11-12 (see §9). Available because the repo is public; the free-plan limit in D16 does not apply here. |
-| Automated tests | ⚠ | Two registry/translation check scripts gate the deploy; there are no link, accessibility or PDF-hash checks in CI. The CLAUDE.md "zero axe violations" standard is audited by hand. |
+| Automated tests | ✅ | Two registry/translation checks and the PDF hash check gate every PR and every deploy; the build must be warning-free (PR #1, PR #2). Still missing: an external-link check and automated accessibility checks (the CLAUDE.md "zero axe violations" standard is audited by hand). |
 | Behavioral/visual checks | ⚠ | Manual preview and an axe-core procedure in CLAUDE.md. |
-| Smoke test after deploy | ❌ | None. |
+| Smoke test after deploy | ✅ | `scripts/smoke_test.py` runs against the built site on every PR, against the live site after every deploy, and daily via `monitor.yml` (PR #2). |
 | Init script | ✅ | `init.sh` (PR #1). |
 | Context files | ✅ | `CLAUDE.md` cut to about 5 KB with an Apiary section; details in `docs/` (PR #1). |
 | Issue forms, labels, Projects board | ❌ | None yet. |
@@ -68,28 +68,29 @@ Tiers measure **blast radius, not file type**. Here prose is the sensitive part:
 | Link rot and PDF integrity | Scheduled checks (see §8) | R1 |
 
 ## 6. Verify (PLAN.md §2.5)
-- **Required checks on every PR (to add as a PR workflow):** the two check scripts; production build with zero warnings; a **PDF hash check** (each hosted PDF matches its `sha256`); an **internal link check** (for example html-proofer; it would likely have caught the recent bug where timeline PDF links were cut off at the first hyphen); an **axe-core accessibility pass** over the main page types in both color schemes.
+- **Required checks on every PR (landed):** the two check scripts; the **PDF hash check**; a production build with zero warnings; and a **smoke test of the built site**, whose timeline-link check would have caught the recent bug where PDF links were cut off at the first hyphen. *Still to add:* an internal link check beyond the timeline (for example html-proofer) and an **axe-core accessibility pass** over the main page types in both color schemes.
 - **Evaluator (behavioral):** serve the built site and exercise the timeline (keyboard and click), search in both languages, a document page, a people page, the language switch, in light and dark.
 - **Reviewer focus:** every factual statement attributed to who made it; quotes and dates exact and checked against the source page image; no new personal contact details in text; AI disclosure present in any new view that shows a summary; Spanish twin present and matching the Spanish style rules; no generated claim of fact beyond what the records show.
 
 ## 7. Deploy and rollback (PLAN.md §2.7)
 - **Mechanism:** merge to `main` triggers `pages.yml` (checks, build, upload, deploy) in roughly 30-90 s. Deploy-on-merge is accepted (D8).
 - **Blocking gates already in place:** the people and Spanish checks and the build.
-- **Smoke test (to add, after deploy):** request `/`, `/es/`, `/timeline.json`, `/search.json`, one document page and its PDF; expect HTTP 200, valid JSON, the PDF's hash equal to the front matter, and the `hreflang` and AI-disclosure markers present.
+- **Smoke test (landed, PR #2):** a `smoke` job after each deploy tests the live site (sitemap pages, JSON feeds, timeline page and PDF links, both language pages for every document with the PDF link, hash and AI note, `hreflang`), with retries for CDN lag. A failure opens an issue. It deliberately does not roll back: a transient failure shouldn't trigger a revert, and reverting is a human call.
 - **Rollback:** a revert PR (about 1.5 minutes to redeploy). For a factual error about a person, treat the revert as urgent and notify the owner immediately; it still needs the owner's approval (D1).
 - **Note:** the workflow cancels an in-progress deploy when a newer push arrives; this was seen once in recent runs, which is fine.
 
 ## 8. Monitoring (PLAN.md §2.9)
 A static site has no server-side errors to catch, so signals are about availability, integrity and drift:
-- **Deploy status:** a failed deploy run opens an issue.
-- **Daily smoke and uptime check** (scheduled workflow) using the smoke test in §7.
+- **Deploy status:** a failing check or build fails the run and blocks the deploy (GitHub's own run-failure notifications apply); a failed post-deploy smoke test opens an issue.
+- **Daily smoke and uptime check (landed):** `monitor.yml` runs the smoke test against the live site every day at 14:17 UTC; a failure opens an issue or comments on the one already open.
 - **Weekly link check** of external source links and the city page.
-- **PDF integrity:** scheduled hash check of the live files against front matter.
+- **PDF integrity (landed):** the same monitor downloads every PDF and compares it with the front-matter hash on Mondays and on manual runs.
 - **Overview staleness** (existing warning) and the **count of unreviewed Spanish records** as drift signals.
 - **City-page watcher** (Detection, §5).
 - GoatCounter (cookieless) shows traffic but is not an error signal.
 - **Watch windows:** R0-R1 1 hour (smoke test), R2 24 hours, R3 7 days. For R3 content the automated signals are weak, so the real check is the owner's re-read and corrections arriving through the site's contact form.
 - **Human feedback channel:** the Contact page's form (corrections and tips).
+- **Alerts (D19):** GitHub issues, plus the owner's own GitHub notification settings (watch the repo, GitHub Mobile for push). Not built, kept as post-MVP candidates: a push channel for urgent alerts only (site down, PDF hash mismatch, monitor silent), a dead-man switch (for example Healthchecks.io) so a silent monitor is noticed, auto-close of the alert issue on recovery, and severity levels.
 
 ## 9. Gates and permissions
 - **Branch ruleset on `main` (active, "Protect main (Apiary gates)"):** requires a pull request, the `checks` status check, and one approving review (stale approvals dismissed on push); blocks force pushes and deletion. The repo-admin role (the owner) can bypass, for hotfixes and for PRs opened with the owner's own token, which the owner cannot approve. Agents get no bypass. *Revisit:* once agents run as a separate bot identity (D15), consider removing the bypass.
@@ -108,7 +109,8 @@ Items marked **(R3)** touch gates or context, so the owner (with Claude, interac
 - [x] Branch ruleset on `main` and repo settings (2026-11-12).
 - [x] Apiary section in `CLAUDE.md`, split into a short index plus on-demand docs (PR #1).
 - [x] `init.sh` (PR #1).
-- [ ] Add the smoke test and PDF hash check scripts, then the link check and axe-core pass **(R3, workflows)**.
+- [x] Smoke test and PDF hash check scripts and workflows (PR #2).
+- [ ] Add an external-link check and an axe-core accessibility pass **(R3, workflows)**.
 - [ ] Create labels, issue forms and add the repo to the Projects board.
 - [ ] Add the Claude credential secret (D17).
 - [ ] Choose the first factory tasks. Suggested: a small R1 or R2 item (for example the RSS feed, R2) before any R3 content ingest; then the first ingest, with the owner approving every claim.

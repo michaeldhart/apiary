@@ -26,8 +26,9 @@ Status: **draft 0.1** (2026-11-10)
 | D14 | Issues live in each hive repo; `apiary:` labels are the source of truth | A GitHub Projects board is the MVP admin surface (§3, §4). Tracker sits behind a thin adapter. |
 | D15 | Agents run as a distinct bot identity, never the owner's personal token | Human-only gates are validated at the point of use (§2.0). |
 | D16 | Stay on the GitHub free plan; make the `apiary` repo **public** | Rulesets cover `apiary` itself. Private hive repos have no branch protection, so they use the fallback gate (§3) until/unless Pro or public. |
-| D18 | The first hive is `eyes-on-hawkeye` | Audited 2026-11-12; profile in `hives/eyes-on-hawkeye.md`. It is public, so branch rulesets are available there. |
 | D17 | Phase 0 authenticates with the owner's consumer Claude subscription token | Switching to an API key with a spend cap is a **post-MVP improvement**, kept on the table (§3). |
+| D18 | The first hive is `eyes-on-hawkeye` | Audited 2026-11-12; profile in `hives/eyes-on-hawkeye.md`. It is public, so branch rulesets are available there. |
+| D19 | Phase 0 alerts are GitHub issues plus the owner's own GitHub notification settings | No push channel yet. Post-MVP candidates: a push channel for urgent alerts only, a dead-man switch for a silent monitor, auto-close on recovery, severity levels (§2.9, `hives/eyes-on-hawkeye.md`). |
 
 **Pending decisions:** none blocking. Post-MVP candidates: API-key credential, GitHub Pro for hive-repo rulesets, separate agent sandbox (§3).
 
@@ -291,7 +292,7 @@ Plan owns both the standing context agents work from and the plan for each issue
 - **Actor:** `S` watches and wakes an `A` only when a threshold trips.
 - **Permissions:** `read-only` on telemetry; may open issues; may trigger a revert only through the Deploy script's preapproved criteria.
 - **Gate:** the watch window closes with no regression, then the issue is closed. *Watch windows (adopted, tunable with data): `R0` 1 hour, `R1` 24 hours, `R2`/`R3` 7 days.*
-- **Failure:** a dead-man switch alerts a human if the monitor itself goes silent.
+- **Failure:** a dead-man switch alerts a human if the monitor itself goes silent. *(Post-MVP: Phase 0 relies on GitHub issues and the owner's notification settings, D19.)*
 - **Metrics:** time to detect, false-alarm rate, share of problems the factory found before a human did.
 
 **Notes from the sources**
@@ -413,7 +414,9 @@ Purpose: a control plane to see and steer the factory: queue, in-flight runs, ap
 - [ ] Implement the human-only label check and the claim-time timeline validation (§2.0).
 - [x] Audited `eyes-on-hawkeye` and drafted its hive profile (D18).
 - [x] Hawkeye gates landed: PR CI, `main` ruleset, `CLAUDE.md` split with an Apiary section, `init.sh` (PR #1, 2026-11-12).
-- [ ] Finish the rest of the onboarding checklist in `hives/eyes-on-hawkeye.md`: smoke test and PDF hash check, link and accessibility checks, labels/forms/Projects board, credential secret, first tasks.
+- [x] Hawkeye PDF hash check, smoke test and daily live-site monitor landed (PR #2, 2026-11-13).
+- [ ] Finish the rest of the onboarding checklist in `hives/eyes-on-hawkeye.md`: external-link and accessibility checks, labels/forms/Projects board, credential secret, first tasks.
+- [ ] The owner sets GitHub notifications for new issues in `eyes-on-hawkeye` (D19).
 - [ ] Set the Triage graduation thresholds (§2.2) once there is agreement data.
 - [x] Pick a naming theme: Apiary (D5, §8).
 - [x] Choose the project name: Apiary (D5, §8.3).
