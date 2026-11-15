@@ -410,9 +410,9 @@ Purpose: a control plane to see and steer the factory: queue, in-flight runs, ap
 - [x] `apiary` repo made public; free plan with the fallback gate for private hives (D16).
 - [x] Phase 0 credential: consumer subscription; API key is post-MVP (D17).
 - [ ] Post-MVP: switch to an API key with a spend cap; revisit GitHub Pro for hive-repo rulesets; separate agent sandbox.
-- [x] GitHub Projects board "Apiary" (project #1, private) created with the hive repo linked and the fields from §3; issue forms for the first hive are in eyes-on-hawkeye PR #3.
+- [x] GitHub Projects board "Apiary" (project #1, private) created with the hive repo linked and the fields from §3; issue forms for the first hive were merged in eyes-on-hawkeye PR #3.
 - [x] Owner set up the board's label-filter views (2026-11-15).
-- [ ] Owner: confirm the auto-add rule is on (§3), and merge eyes-on-hawkeye PR #3 (issue forms).
+- [ ] Owner: confirm the board's auto-add rule is on (§3).
 - [ ] Implement the human-only label check and the claim-time timeline validation (§2.0).
 - [x] Audited `eyes-on-hawkeye` and drafted its hive profile (D18).
 - [x] Hawkeye gates landed: PR CI, `main` ruleset, `CLAUDE.md` split with an Apiary section, `init.sh` (PR #1, 2026-11-12).

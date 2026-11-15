@@ -26,7 +26,7 @@ Measured on a fresh clone in a throwaway directory (2026-11-12):
 | Smoke test after deploy | ✅ | `scripts/smoke_test.py` runs against the built site on every PR, against the live site after every deploy, and daily via `monitor.yml` (PR #2). |
 | Init script | ✅ | `init.sh` (PR #1). |
 | Context files | ✅ | `CLAUDE.md` cut to about 5 KB with an Apiary section; details in `docs/` (PR #1). |
-| Issue forms, labels, Projects board | ⚠ | Labels and the board (project #1, repo linked, fields added) exist; issue forms are in PR #3 (pending merge); the board's views and auto-add rule are UI steps for the owner. |
+| Issue forms, labels, Projects board | ✅ | Labels created; bug and change issue forms merged (PR #3); board (project #1) exists with the repo linked, fields added and the owner's label-filter views. Still to confirm: the board's auto-add rule. |
 | Secrets | ✅ | None in the repo. |
 | Deploy blocked by failing checks | ✅ | The people/i18n checks and the build run before the deploy job, so a failing check stops a bad deploy. |
 
@@ -95,7 +95,7 @@ A static site has no server-side errors to catch, so signals are about availabil
 ## 9. Gates and permissions
 - **Branch ruleset on `main` (active, "Protect main (Apiary gates)"):** requires a pull request, the `checks` status check, and one approving review (stale approvals dismissed on push); blocks force pushes and deletion. The repo-admin role (the owner) can bypass, for hotfixes and for PRs opened with the owner's own token, which the owner cannot approve. Agents get no bypass. *Revisit:* once agents run as a separate bot identity (D15), consider removing the bypass.
 - **Repo settings:** merged head branches are deleted automatically; auto-merge stays **off** (D1).
-- **Labels, issue forms, board:** the 14 `apiary:` state labels, `risk:R0` to `R3` and `type:bug`/`feature`/`chore` exist (2026-11-13). Issue forms (bug and change; blank issues off) are in PR #3. The owner-level Projects board "Apiary" (project #1, private) exists with this repo linked and the fields Cost, Runs, Run link and Triage agreed; the owner has set up its label-filter views; the auto-add rule still needs confirming (PLAN.md §3).
+- **Labels, issue forms, board:** the 14 `apiary:` state labels, `risk:R0` to `R3` and `type:bug`/`feature`/`chore` exist (2026-11-13). Issue forms (bug and change; blank issues off) were merged in PR #3. The owner-level Projects board "Apiary" (project #1, private) exists with this repo linked and the fields Cost, Runs, Run link and Triage agreed; the owner has set up its label-filter views; the auto-add rule still needs confirming (PLAN.md §3).
 - **Secrets the factory needs:** the Claude credential for Phase 0 (D17) as a repo secret; none exists today. Workflows from forks do not receive it.
 - **Who may open or label issues that trigger runs:** the repo is public and has issues enabled, so **strangers can open issues**. Detection and Triage must act only on issues authored by the owner, collaborators or the Apiary bot, and must treat all issue text as untrusted. Only the owner can apply `ready` and `plan-approved` (§2.0).
 
@@ -112,7 +112,7 @@ Items marked **(R3)** touch gates or context, so the owner (with Claude, interac
 - [x] Smoke test and PDF hash check scripts and workflows (PR #2).
 - [ ] Add an external-link check and an axe-core accessibility pass **(R3, workflows)**.
 - [x] Labels created (14 `apiary:` states, 4 `risk:`, 3 `type:`).
-- [ ] Merge the issue forms (PR #3).
+- [x] Issue forms merged (PR #3).
 - [x] Projects board created (project #1), repo linked, fields added.
 - [x] Board views set up by the owner (2026-11-15).
 - [ ] Confirm the board's auto-add rule is on for this repo.
