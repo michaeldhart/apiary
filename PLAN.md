@@ -169,7 +169,7 @@ Context (conventions, architecture notes, never-touch list) is **part of Plan**,
 - **Gate:** source and evidence present, not a duplicate, under the rate limit.
 - **Failure:** unparseable input goes to a human inbox (`needs-info`); floods are batched into a digest.
 - **Metrics:** issues by source, duplicate rate, share that passes triage.
-- **Template (GitHub issue forms in `.github/ISSUE_TEMPLATE/`):** two forms, **bug** and **change** (feature or chore). Required: goal/summary, evidence (logs, steps, links), definition of done as testable checks. Bug form adds steps to reproduce and expected vs. actual. Optional: constraints, out of scope, suggested tier (Triage decides the tier). If "definition of done" is blank, Triage drafts one for the owner to confirm. Detection fills the same fields for machine-created issues.
+- **Template (GitHub issue forms in `.github/ISSUE_TEMPLATE/`):** two forms, **bug** and **change** (feature or chore), landed for the first hive in PR #3. Required: goal/summary and evidence (bugs also: steps to reproduce and expected vs. actual). Optional: definition of done as testable checks (if blank, Triage drafts one for the owner to confirm), constraints, suggested tier (Triage decides the tier). Both forms apply `apiary:detected`; the bug form also applies `type:bug`. Blank issues are off, and corrections or tips about records go to the site's contact form. Detection fills the same fields for machine-created issues.
 
 **Notes from the sources**
 - Ona: intake also includes agent-generated work: Sentry-to-issue incident responder, a Product Improver that screenshots the live app and files `needs-human` issues, a `quality.md` scorecard that spawns issues for weak areas, and an in-app feedback widget + digest. Scheduled backlog pickers and CVE/dead-code sweeps target chronic toil.
@@ -335,9 +335,9 @@ Plan owns both the standing context agents work from and the plan for each issue
 - **Tracker (D3, D14):** GitHub Issues, behind a **thin adapter** with a few operations (list ready items, post a comment, set a state) so work can later plug in Jira or Linear. Skip Beads for now; revisit only if a dependency graph across many parallel agents is needed.
 
 - **GitHub Projects as the MVP control surface (D14).** One Projects (v2) board spans the hive repos. It is a *view* of the labels, kept in sync by workflows; labels remain the source of truth.
-  - **Fields:** Status (mirrors the `apiary:` state), Hive, Type, Risk tier, Size, Cost (number), Runs (number), Run link, Triage agreed (yes/no, for the agreement metric).
-  - **Views:** *Intake* (`detected`/`triaged`, waiting for the owner's `ready`); *Plan review* (`planned`, waiting for `plan-approved`); *Approval inbox* (`awaiting-approval`, with the linked PR); *In flight* (`building`/`verifying`); *Monitoring*; *Blocked*; *History*.
-  - **Automation:** built-in project workflows auto-add issues and set Status on close/merge; our Actions update the other fields through the GraphQL API with an App token. Insights charts cover throughput, cost and blocked counts by hive and tier.
+  - **Fields (only what runs will write):** Cost (number), Runs (number), Run link (text), Triage agreed (yes/no, for the agreement metric). **No Status field and no sync:** the labels are the state, and each view filters on labels, so there is nothing to keep in sync. (GitHub's API cannot create project views or built-in automations, so views and the auto-add rule are set up once in the UI.)
+  - **Views (each a label filter, for example `is:open label:"apiary:planned"`):** *Intake* (`detected`, `triaged`, `needs-info`, `needs-spec`); *Plan review* (`planned`, waiting for `plan-approved`); *Approval inbox* (`awaiting-approval`, with the linked PR); *In flight* (`ready`, `plan-approved`, `building`, `verifying`); *Monitoring* (`merged`, `monitoring`); *Blocked*; *History* (`is:closed`).
+  - **Automation:** the built-in "auto-add to project" rule (set in the UI) adds new issues and PRs from the hive repos; later, run workflows write Cost, Runs and Run link through the GraphQL API with an App token. Insights charts cover throughput, cost and blocked counts.
   - **What it does not cover (the gaps a custom admin UI would fill later, §4):** run timeline and transcript viewer, per-run cost and token drill-down, factory health metrics (triage agreement, defect escape), policy/prompt editor, kill switch, live run status.
 - **Runner (D13): GitHub Actions only for Phase 0.** Use the official `anthropics/claude-code-action`: headless Claude Code on hosted runners, authenticating by default as the Claude GitHub App (a distinct bot identity, D15), with an automation mode driven by a `prompt` (or a skill), `--max-turns`, `--allowedTools` and `--model`. Its own checks require write access for issue/PR triggers and reject bot actors unless allowlisted (§2.0 chaining note). It also notes that pushes made with the default `GITHUB_TOKEN` do not trigger CI, so use the App identity for pushes.
   - **Phase 0 guardrails:** dedicated credential with a spend cap; repo-scoped token; `--max-turns` and job timeouts; concurrency limits; narrow tool allowlist; start with a low-stakes hive. **Accepted residual risk:** the credential is visible to the agent's environment.
@@ -410,7 +410,9 @@ Purpose: a control plane to see and steer the factory: queue, in-flight runs, ap
 - [x] `apiary` repo made public; free plan with the fallback gate for private hives (D16).
 - [x] Phase 0 credential: consumer subscription; API key is post-MVP (D17).
 - [ ] Post-MVP: switch to an API key with a spend cap; revisit GitHub Pro for hive-repo rulesets; separate agent sandbox.
-- [ ] Set up the GitHub Projects board (fields and views in §3) and the issue forms (§2.1).
+- [x] GitHub Projects board "Apiary" (project #1, private) created with the hive repo linked and the fields from §3; issue forms for the first hive are in eyes-on-hawkeye PR #3.
+- [x] Owner set up the board's label-filter views (2026-11-15).
+- [ ] Owner: confirm the auto-add rule is on (§3), and merge eyes-on-hawkeye PR #3 (issue forms).
 - [ ] Implement the human-only label check and the claim-time timeline validation (§2.0).
 - [x] Audited `eyes-on-hawkeye` and drafted its hive profile (D18).
 - [x] Hawkeye gates landed: PR CI, `main` ruleset, `CLAUDE.md` split with an Apiary section, `init.sh` (PR #1, 2026-11-12).
